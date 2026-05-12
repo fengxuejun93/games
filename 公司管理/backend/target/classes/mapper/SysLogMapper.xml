@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.companymanagement.mapper.SysLogMapper">
+    <select id="selectByCompanyIdAndTimeRange" resultType="com.example.companymanagement.entity.SysLog">
+        SELECT * FROM sys_log 
+        WHERE company_id = #{companyId} 
+          AND created_at BETWEEN #{startTime} AND #{endTime}
+        ORDER BY created_at DESC
+    </select>
+    
+    <select id="selectByModule" resultType="com.example.companymanagement.entity.SysLog">
+        SELECT * FROM sys_log 
+        WHERE module = #{module}
+        ORDER BY created_at DESC
+    </select>
+</mapper>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.companymanagement.mapper.PositionMapper">
+    <select id="selectByCompanyId" resultType="com.example.companymanagement.entity.Position">
+        SELECT * FROM position WHERE company_id = #{companyId} ORDER BY name
+    </select>
+</mapper>
