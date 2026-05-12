@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>欢乐斗地主</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>🎴 欢乐斗地主 🎴</h1>
+            <div class="score-panel">
+                <div class="score-item">
+                    <span>玩家</span>
+                    <span class="score" id="playerScore">0</span>
+                </div>
+                <div class="score-item">
+                    <span>农民1</span>
+                    <span class="score" id="ai1Score">0</span>
+                </div>
+                <div class="score-item">
+                    <span>农民2</span>
+                    <span class="score" id="ai2Score">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="player-area top-player" id="topPlayer">
+                <div class="player-info">
+                    <span class="player-name">农民1</span>
+                    <span class="card-count" id="ai1Cards">17</span>
+                </div>
+                <div class="card-back-container" id="ai1CardBacks"></div>
+            </div>
+
+            <div class="middle-area">
+                <div class="landlord-area">
+                    <div class="landlord-cards" id="landlordCards"></div>
+                    <div class="landlord-badge" id="landlordBadge"></div>
+                </div>
+                <div class="last-play-area">
+                    <span class="last-play-label">最后出牌</span>
+                    <div class="last-play-cards" id="lastPlayedCards"></div>
+                    <span class="last-player" id="lastPlayer">-</span>
+                </div>
+            </div>
+
+            <div class="player-area bottom-player" id="bottomPlayer">
+                <div class="player-info">
+                    <span class="player-name">玩家</span>
+                    <span class="card-count" id="playerCards">17</span>
+                </div>
+                <div class="player-hand" id="playerHand"></div>
+            </div>
+
+            <div class="player-area right-player" id="rightPlayer">
+                <div class="player-info">
+                    <span class="player-name">农民2</span>
+                    <span class="card-count" id="ai2Cards">17</span>
+                </div>
+                <div class="card-back-container-vertical" id="ai2CardBacks"></div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="action-buttons" id="actionButtons">
+                <button class="btn btn-primary" id="btnDouble" disabled>加倍</button>
+                <button class="btn btn-warning" id="btnPass">不出</button>
+                <button class="btn btn-success" id="btnPlay">出牌</button>
+            </div>
+            <div class="game-status" id="gameStatus">准备开始游戏...</div>
+        </div>
+
+        <div class="modal-overlay" id="modalOverlay">
+            <div class="modal">
+                <h2 id="modalTitle">游戏结束</h2>
+                <p id="modalMessage"></p>
+                <div class="modal-scores" id="modalScores"></div>
+                <button class="btn btn-success" id="btnRestart">再来一局</button>
+            </div>
+        </div>
+
+        <div class="landlord-modal" id="landlordModal">
+            <div class="landlord-panel">
+                <h2>🏆 抢地主 🏆</h2>
+                <div class="landlord-buttons">
+                    <button class="btn btn-danger" id="btnRobLandlord">抢地主</button>
+                    <button class="btn btn-default" id="btnNotRob">不抢</button>
+                </div>
+                <div class="landlord-status" id="landlordStatus"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

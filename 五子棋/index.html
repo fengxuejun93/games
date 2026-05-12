@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五子棋 - Gomoku</title>
+    <style>
+        :root {
+            --primary-color: #1a1a2e;
+            --secondary-color: #16213e;
+            --accent-color: #e94560;
+            --gold-color: #f4d03f;
+            --board-color: #deb887;
+            --board-line: #8b4513;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --success-color: #4ade80;
+            --warning-color: #fbbf24;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* 模式选择界面 */
+        .mode-select {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .mode-select h1 {
+            font-size: clamp(2rem, 8vw, 3rem);
+            margin-bottom: 40px;
+            letter-spacing: 4px;
+            text-shadow: 0 0 30px rgba(233, 69, 96, 0.3);
+        }
+
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .mode-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius);
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .mode-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+            box-shadow: 0 15px 40px rgba(233, 69, 96, 0.2);
+        }
+
+        .mode-card.featured {
+            border-color: var(--gold-color);
+            background: linear-gradient(135deg, rgba(244, 208, 63, 0.1), rgba(233, 69, 96, 0.1));
+        }
+
+        .mode-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .mode-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .mode-card p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .mode-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .mode-tag {
+            padding: 4px 12px;
+            background: rgba(233, 69, 96, 0.2);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--accent-color);
+        }
+
+        .mode-tag.featured {
+            background: rgba(244, 208, 63, 0.2);
+            color: var(--gold-color);
+        }
+
+        /* 游戏界面 */
+        .game-container {
+            display: none;
+            min-height: 100vh;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .game-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 520px;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .back-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 8px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .game-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .game-settings {
+            display: flex;
+            gap: 10px;
+        }
+
+        .settings-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* 游戏信息栏 */
+        .game-info {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 520px;
+        }
+
+        .current-player {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-indicator {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-indicator.black {
+            background: radial-gradient(circle at 30% 30%, #444, #000);
+        }
+
+        .player-indicator.white {
+            background: radial-gradient(circle at 30% 30%, #fff, #ccc);
+            border: 1px solid #ddd;
+        }
+
+        .status-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .game-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--gold-color);
+            font-family: 'Courier New', monospace;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* 道具栏 */
+        .powerups-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .powerup-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 80px;
+        }
+
+        .powerup-btn:hover:not(:disabled) {
+            border-color: var(--gold-color);
+            background: rgba(244, 208, 63, 0.1);
+        }
+
+        .powerup-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .powerup-icon {
+            font-size: 24px;
+        }
+
+        .powerup-count {
+            font-size: 12px;
+            color: var(--gold-color);
+            font-weight: 600;
+        }
+
+        .powerup-name {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* 棋盘容器 */
+        .board-container {
+            position: relative;
+            background: var(--board-color);
+            padding: 12px;
+            border-radius: var(--radius);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        #board {
+            display: grid;
+            gap: 0;
+        }
+
+        .cell {
+            width: clamp(18px, 4vw, 28px);
+            height: clamp(18px, 4vw, 28px);
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cell::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background: var(--board-line);
+            z-index: 1;
+        }
+
+        .cell::after {
+            content: '';
+            position: absolute;
+            width: 1px;
+            height: 100%;
+            background: var(--board-line);
+            z-index: 1;
+        }
+
+        .cell:first-child::before,
+        .cell:last-child::before {
+            width: 50%;
+        }
+
+        .cell:nth-child(15n+1)::after,
+        .cell:nth-child(15n)::after {
+            height: 50%;
+        }
+
+        .cell:first-child::after {
+            height: 50%;
+        }
+
+        .cell:nth-child(15n)::before {
+            left: auto;
+            right: 0;
+        }
+
+        .star-point::before {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--board-line);
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        .cell.blocked::after {
+            background: var(--accent-color);
+        }
+
+        .cell.hint::before {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            background: rgba(244, 208, 63, 0.6);
+            border-radius: 50%;
+            z-index: 2;
+            animation: hintPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes hintPulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .piece {
+            width: calc(100% - 6px);
+            height: calc(100% - 6px);
+            border-radius: 50%;
+            position: relative;
+            z-index: 3;
+            transition: transform 0.15s ease;
+        }
+
+        .piece.black {
+            background: radial-gradient(circle at 30% 30%, #666, #000);
+            box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        .piece.white {
+            background: radial-gradient(circle at 30% 30%, #fff, #ccc);
+            box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+            border: 1px solid #ddd;
+        }
+
+        .piece.win {
+            animation: pulse 0.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(244, 208, 63, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(244, 208, 63, 0); }
+        }
+
+        /* 控制按钮 */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 28px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #restartBtn {
+            background: linear-gradient(135deg, var(--accent-color), #ff576c);
+            color: white;
+        }
+
+        #restartBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(233, 69, 96, 0.4);
+        }
+
+        #undoBtn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        #undoBtn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        #undoBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 残局选择 */
+        .puzzle-select {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            padding: 20px;
+        }
+
+        .puzzle-content {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .puzzle-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .puzzle-item {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .puzzle-item:hover {
+            border-color: var(--accent-color);
+        }
+
+        .puzzle-item.completed {
+            border-color: var(--success-color);
+        }
+
+        .puzzle-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gold-color);
+            margin-bottom: 5px;
+        }
+
+        .puzzle-name {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .close-btn {
+            float: right;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* 设置弹窗 */
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            padding: 20px;
+        }
+
+        .settings-content {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .settings-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        .setting-item label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .setting-item select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .setting-item select option {
+            background: var(--primary-color);
+            color: var(--text-primary);
+        }
+
+        /* 弹窗 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(22, 33, 62, 0.95));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s ease;
+            max-width: 320px;
+            width: 100%;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-content h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .modal-content p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+        }
+
+        .modal-piece {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+        }
+
+        .modal-content button {
+            background: linear-gradient(135deg, var(--accent-color), #ff576c);
+            color: white;
+            padding: 14px 36px;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .game-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .game-stats {
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 模式选择界面 -->
+    <div class="mode-select" id="modeSelect">
+        <h1>五子棋</h1>
+        <div class="mode-grid">
+            <div class="mode-card featured" onclick="startGame('pvp')">
+                <div class="mode-icon">👥</div>
+                <h3>双人对战</h3>
+                <p>经典双人对弈模式，与朋友一起享受五子棋的乐趣</p>
+                <div class="mode-tags">
+                    <span class="mode-tag featured">热门</span>
+                    <span class="mode-tag">传统</span>
+                </div>
+            </div>
+
+            <div class="mode-card" onclick="startGame('pve')">
+                <div class="mode-icon">🤖</div>
+                <h3>人机对战</h3>
+                <p>挑战AI对手，测试你的棋艺水平</p>
+                <div class="mode-tags">
+                    <span class="mode-tag">AI</span>
+                    <span class="mode-tag">挑战</span>
+                </div>
+            </div>
+
+            <div class="mode-card" onclick="showPuzzleSelect()">
+                <div class="mode-icon">🧩</div>
+                <h3>残局闯关</h3>
+                <p>挑战经典残局，锻炼你的计算能力</p>
+                <div class="mode-tags">
+                    <span class="mode-tag">闯关</span>
+                    <span class="mode-tag">进阶</span>
+                </div>
+            </div>
+
+            <div class="mode-card" onclick="startGame('timed')">
+                <div class="mode-icon">⏱️</div>
+                <h3>限时赛</h3>
+                <p>每步限时60秒，考验你的快速决策能力</p>
+                <div class="mode-tags">
+                    <span class="mode-tag">限时</span>
+                    <span class="mode-tag">紧张</span>
+                </div>
+            </div>
+
+            <div class="mode-card" onclick="startGame('limited')">
+                <div class="mode-icon">📊</div>
+                <h3>步数限制</h3>
+                <p>限定步数内获胜，挑战极限操作</p>
+                <div class="mode-tags">
+                    <span class="mode-tag">策略</span>
+                    <span class="mode-tag">挑战</span>
+                </div>
+            </div>
+
+            <div class="mode-card" onclick="startGame('powerup')">
+                <div class="mode-icon">✨</div>
+                <h3>道具对战</h3>
+                <p>使用道具获得优势，增加游戏趣味性</p>
+                <div class="mode-tags">
+                    <span class="mode-tag">道具</span>
+                    <span class="mode-tag">趣味</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏界面 -->
+    <div class="game-container" id="gameContainer">
+        <div class="game-header">
+            <button class="back-btn" onclick="backToMenu()">
+                ← 返回
+            </button>
+            <div class="game-title" id="gameTitle">五子棋</div>
+            <div class="game-settings">
+                <button class="settings-btn" onclick="showSettings()" title="设置">⚙️</button>
+            </div>
+        </div>
+
+        <div class="game-info">
+            <div class="current-player">
+                <span class="status-text">当前回合：</span>
+                <div class="player-indicator black" id="currentPlayer"></div>
+                <span class="status-text" id="playerName">黑棋</span>
+            </div>
+            <div class="game-stats" id="gameStats">
+                <div class="stat-item">
+                    <div class="stat-value" id="moveCount">0</div>
+                    <div class="stat-label">步数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="timeLeft">60</div>
+                    <div class="stat-label">时间</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 道具栏 -->
+        <div class="powerups-bar" id="powerupsBar" style="display: none;">
+            <button class="powerup-btn" id="undoPowerup" onclick="usePowerup('undo')">
+                <span class="powerup-icon">↩️</span>
+                <span class="powerup-name">悔棋</span>
+                <span class="powerup-count" id="undoCount">3</span>
+            </button>
+            <button class="powerup-btn" id="blockPowerup" onclick="usePowerup('block')">
+                <span class="powerup-icon">🚫</span>
+                <span class="powerup-name">封锁</span>
+                <span class="powerup-count" id="blockCount">2</span>
+            </button>
+            <button class="powerup-btn" id="hintPowerup" onclick="usePowerup('hint')">
+                <span class="powerup-icon">💡</span>
+                <span class="powerup-name">提示</span>
+                <span class="powerup-count" id="hintCount">2</span>
+            </button>
+        </div>
+
+        <div class="board-container">
+            <div id="board"></div>
+        </div>
+
+        <div class="controls">
+            <button id="undoBtn" disabled>↩ 悔棋</button>
+            <button id="restartBtn">重新开始</button>
+        </div>
+    </div>
+
+    <!-- 残局选择弹窗 -->
+    <div class="puzzle-select" id="puzzleSelect">
+        <div class="puzzle-content">
+            <button class="close-btn" onclick="hidePuzzleSelect()">×</button>
+            <h3>选择残局</h3>
+            <div class="puzzle-grid" id="puzzleGrid">
+                <!-- 动态生成残局列表 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置弹窗 -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-content">
+            <button class="close-btn" onclick="hideSettings()">×</button>
+            <h3>游戏设置</h3>
+            <div class="setting-item">
+                <label>棋盘大小</label>
+                <select id="boardSizeSelect">
+                    <option value="15">15路 (标准)</option>
+                    <option value="13">13路</option>
+                    <option value="11">11路</option>
+                </select>
+            </div>
+            <div style="text-align: center;">
+                <button onclick="applySettings()">应用设置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 结果弹窗 -->
+    <div class="modal-overlay" id="winModal">
+        <div class="modal-content">
+            <div class="modal-piece black" id="winnerPiece"></div>
+            <h2>🎉 游戏结束！</h2>
+            <p id="winnerText"></p>
+            <button id="modalRestartBtn" onclick="restartGame()">再来一局</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏配置
+        let BOARD_SIZE = 15;
+        const TIME_LIMIT = 60;
+        const MAX_MOVES = 30;
+
+        // 游戏状态
+        let board = [];
+        let currentPlayer = 'black';
+        let gameOver = false;
+        let winLine = [];
+        let gameMode = 'pvp';
+        let isAIThinking = false;
+        let moveHistory = [];
+        let moveCount = 0;
+        let maxMoves = MAX_MOVES;
+        let remainingTime = TIME_LIMIT;
+        let timerInterval = null;
+
+        // 道具系统
+        let powerups = {
+            undo: 3,
+            block: 2,
+            hint: 2
+        };
+        let blockedCells = [];
+        let hintCells = [];
+
+        // 残局数据
+        const puzzles = [
+            {
+                id: 1,
+                name: '第一关',
+                board: [
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,'black','black','black','black',null,null,null,null,null],
+                    [null,null,null,null,null,null,'white','white','white',null,'white',null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]
+                ],
+                playerColor: 'black',
+                description: '黑棋一步获胜'
+            },
+            {
+                id: 2,
+                name: '第二关',
+                board: [
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,'black',null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,'black','white','white',null,null,null,null,null,null,null,null],
+                    [null,null,null,'black','white',null,'white',null,null,null,null,null,null,null,null],
+                    [null,null,null,'white',null,'white','black',null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]
+                ],
+                playerColor: 'black',
+                description: '黑棋三步获胜'
+            }
+        ];
+
+        // 星位点坐标
+        const getStarPoints = () => {
+            const mid = Math.floor(BOARD_SIZE / 2);
+            const offset = 4;
+            return [
+                [mid - offset, mid - offset], [mid - offset, mid], [mid - offset, mid + offset],
+                [mid, mid - offset], [mid, mid], [mid, mid + offset],
+                [mid + offset, mid - offset], [mid + offset, mid], [mid + offset, mid + offset]
+            ].filter(([r, c]) => r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE);
+        };
+
+        const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
+
+        // 初始化棋盘
+        function initBoard(customBoard = null) {
+            board = customBoard || Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
+            
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = '';
+            boardElement.style.gridTemplateColumns = `repeat(${BOARD_SIZE}, 1fr)`;
+
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    
+                    if (isStarPoint(row, col)) {
+                        cell.classList.add('star-point');
+                    }
+                    
+                    if (blockedCells.some(([r, c]) => r === row && c === col)) {
+                        cell.classList.add('blocked');
+                    }
+                    
+                    cell.addEventListener('click', () => handleCellClick(row, col));
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    
+                    // 如果有预设棋子
+                    if (board[row][col]) {
+                        const piece = document.createElement('div');
+                        piece.className = `piece ${board[row][col]}`;
+                        cell.appendChild(piece);
+                        moveHistory.push({ row, col, player: board[row][col] });
+                    }
+                    
+                    boardElement.appendChild(cell);
+                }
+            }
+            
+            updateUndoButton();
+        }
+
+        function isStarPoint(row, col) {
+            return getStarPoints().some(([r, c]) => r === row && c === col);
+        }
+
+        // 处理落子
+        function handleCellClick(row, col) {
+            if (!isValidPosition(row, col)) return;
+            if (gameOver) return;
+            if (isAIThinking) return;
+            if (board[row][col]) return;
+            if (blockedCells.some(([r, c]) => r === row && c === col)) return;
+            if (gameMode === 'pve' && currentPlayer === 'white') return;
+
+            placePiece(row, col);
+
+            if (checkWin(row, col)) {
+                gameOver = true;
+                stopTimer();
+                showWinModal();
+            } else if (checkDraw()) {
+                gameOver = true;
+                stopTimer();
+                showDrawModal();
+            } else if (gameMode === 'limited' && moveCount >= maxMoves) {
+                gameOver = true;
+                stopTimer();
+                showDrawModal();
+            } else {
+                switchPlayer();
+                if (gameMode === 'pve' && currentPlayer === 'white') {
+                    setTimeout(aiMove, 500);
+                }
+            }
+            
+            clearHints();
+        }
+
+        // 落子
+        function placePiece(row, col) {
+            moveHistory.push({ row, col, player: currentPlayer });
+            board[row][col] = currentPlayer;
+            
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            const piece = document.createElement('div');
+            piece.className = `piece ${currentPlayer}`;
+            cell.appendChild(piece);
+            
+            moveCount++;
+            document.getElementById('moveCount').textContent = moveCount;
+            
+            updateUndoButton();
+        }
+
+        // AI落子
+        function aiMove() {
+            if (gameOver) return;
+            isAIThinking = true;
+            
+            setTimeout(() => {
+                const [row, col] = findBestMove();
+                
+                if (row !== -1 && col !== -1) {
+                    placePiece(row, col);
+                    
+                    if (checkWin(row, col)) {
+                        gameOver = true;
+                        stopTimer();
+                        showWinModal();
+                    } else if (checkDraw()) {
+                        gameOver = true;
+                        stopTimer();
+                        showDrawModal();
+                    } else {
+                        switchPlayer();
+                    }
+                }
+                
+                isAIThinking = false;
+            }, 800);
+        }
+
+        // AI找最佳位置
+        function findBestMove() {
+            const scores = [];
+            
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    if (!board[row][col] && !blockedCells.some(([r, c]) => r === row && c === col)) {
+                        const score = evaluatePosition(row, col);
+                        scores.push({ row, col, score });
+                    }
+                }
+            }
+            
+            if (scores.length === 0) return [-1, -1];
+            
+            scores.sort((a, b) => b.score - a.score);
+            const topScores = scores.slice(0, Math.min(3, scores.length));
+            const randomIndex = Math.floor(Math.random() * topScores.length);
+            
+            return [topScores[randomIndex].row, topScores[randomIndex].col];
+        }
+
+        function evaluatePosition(row, col) {
+            let score = 0;
+            const centerDist = Math.abs(row - BOARD_SIZE/2) + Math.abs(col - BOARD_SIZE/2);
+            score += Math.max(0, BOARD_SIZE - centerDist);
+            
+            for (const [dx, dy] of directions) {
+                let aiCount = 0, humanCount = 0, aiBlocks = 0, humanBlocks = 0;
+                
+                for (let i = 1; i <= 4; i++) {
+                    const newRow = row + dx * i;
+                    const newCol = col + dy * i;
+                    if (!isValidPosition(newRow, newCol)) { aiBlocks++; humanBlocks++; break; }
+                    if (board[newRow][newCol] === 'white') aiCount++;
+                    else if (board[newRow][newCol] === 'black') { humanCount++; break; }
+                }
+                
+                for (let i = 1; i <= 4; i++) {
+                    const newRow = row - dx * i;
+                    const newCol = col - dy * i;
+                    if (!isValidPosition(newRow, newCol)) { aiBlocks++; humanBlocks++; break; }
+                    if (board[newRow][newCol] === 'white') aiCount++;
+                    else if (board[newRow][newCol] === 'black') { humanCount++; break; }
+                }
+                
+                if (aiCount === 4) score += 10000;
+                else if (aiCount === 3 && aiBlocks === 0) score += 1000;
+                else if (aiCount === 3 && aiBlocks === 1) score += 500;
+                else if (aiCount === 2 && aiBlocks === 0) score += 100;
+                else if (aiCount === 2 && aiBlocks === 1) score += 50;
+                else if (aiCount === 1) score += 10;
+                
+                if (humanCount === 4) score += 9000;
+                else if (humanCount === 3 && humanBlocks === 0) score += 900;
+                else if (humanCount === 3 && humanBlocks === 1) score += 450;
+                else if (humanCount === 2 && humanBlocks === 0) score += 90;
+                else if (humanCount === 2 && humanBlocks === 1) score += 45;
+                else if (humanCount === 1) score += 5;
+            }
+            
+            return score;
+        }
+
+        function checkWin(row, col) {
+            const player = board[row][col];
+            
+            for (const [dx, dy] of directions) {
+                let count = 1;
+                const line = [[row, col]];
+                
+                for (let i = 1; i < 5; i++) {
+                    const newRow = row + dx * i;
+                    const newCol = col + dy * i;
+                    if (isValidPosition(newRow, newCol) && board[newRow][newCol] === player) {
+                        count++;
+                        line.push([newRow, newCol]);
+                    } else break;
+                }
+                
+                for (let i = 1; i < 5; i++) {
+                    const newRow = row - dx * i;
+                    const newCol = col - dy * i;
+                    if (isValidPosition(newRow, newCol) && board[newRow][newCol] === player) {
+                        count++;
+                        line.push([newRow, newCol]);
+                    } else break;
+                }
+                
+                if (count >= 5) {
+                    winLine = line;
+                    highlightWinPieces();
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        function isValidPosition(row, col) {
+            return row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE;
+        }
+
+        function highlightWinPieces() {
+            for (const [row, col] of winLine) {
+                const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                const piece = cell.querySelector('.piece');
+                piece.classList.add('win');
+            }
+        }
+
+        function checkDraw() {
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    if (!board[row][col] && !blockedCells.some(([r, c]) => r === row && c === col)) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function switchPlayer() {
+            currentPlayer = currentPlayer === 'black' ? 'white' : 'black';
+            
+            const playerIndicator = document.getElementById('currentPlayer');
+            const playerName = document.getElementById('playerName');
+            
+            playerIndicator.className = `player-indicator ${currentPlayer}`;
+            
+            if (gameMode === 'pve') {
+                playerName.textContent = currentPlayer === 'black' ? '玩家' : 'AI';
+            } else {
+                playerName.textContent = currentPlayer === 'black' ? '黑棋' : '白棋';
+            }
+            
+            resetTimer();
+        }
+
+        function resetTimer() {
+            stopTimer();
+            if (gameMode === 'timed' || gameMode === 'powerup') {
+                remainingTime = TIME_LIMIT;
+                updateTimerDisplay();
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            if (gameOver) return;
+            
+            timerInterval = setInterval(() => {
+                remainingTime--;
+                updateTimerDisplay();
+                
+                if (remainingTime <= 0) {
+                    stopTimer();
+                    gameOver = true;
+                    const winner = currentPlayer === 'black' ? 'white' : 'black';
+                    currentPlayer = winner;
+                    showTimeoutModal();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function updateTimerDisplay() {
+            const timeDisplay = document.getElementById('timeLeft');
+            timeDisplay.textContent = remainingTime;
+        }
+
+        // 道具功能
+        function usePowerup(type) {
+            if (gameOver) return;
+            
+            switch (type) {
+                case 'undo':
+                    if (powerups.undo > 0 && moveHistory.length > 0) {
+                        powerups.undo--;
+                        document.getElementById('undoCount').textContent = powerups.undo;
+                        undoMove();
+                    }
+                    break;
+                case 'block':
+                    if (powerups.block > 0) {
+                        powerups.block--;
+                        document.getElementById('blockCount').textContent = powerups.block;
+                        // 封锁对手下一步可能下的最佳位置
+                        const bestMove = findBestMove();
+                        if (bestMove[0] !== -1) {
+                            blockedCells.push(bestMove);
+                            const cell = document.querySelector(`[data-row="${bestMove[0]}"][data-col="${bestMove[1]}"]`);
+                            cell.classList.add('blocked');
+                        }
+                    }
+                    break;
+                case 'hint':
+                    if (powerups.hint > 0) {
+                        powerups.hint--;
+                        document.getElementById('hintCount').textContent = powerups.hint;
+                        // 显示最佳落子位置
+                        const bestMove = findBestMove();
+                        if (bestMove[0] !== -1) {
+                            hintCells.push(bestMove);
+                            const cell = document.querySelector(`[data-row="${bestMove[0]}"][data-col="${bestMove[1]}"]`);
+                            cell.classList.add('hint');
+                        }
+                    }
+                    break;
+            }
+        }
+
+        function clearHints() {
+            hintCells.forEach(([row, col]) => {
+                const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                cell.classList.remove('hint');
+            });
+            hintCells = [];
+        }
+
+        function updateUndoButton() {
+            const undoBtn = document.getElementById('undoBtn');
+            const hasHistory = moveHistory.length > 0;
+            const hasUndoPowerup = gameMode === 'powerup' && powerups.undo > 0;
+            
+            if (gameMode === 'powerup') {
+                undoBtn.disabled = !hasUndoPowerup || gameOver;
+            } else {
+                undoBtn.disabled = !hasHistory || gameOver;
+            }
+        }
+
+        function undoMove() {
+            if (moveHistory.length === 0 || gameOver) return;
+            
+            const lastMove = moveHistory.pop();
+            board[lastMove.row][lastMove.col] = null;
+            
+            const cell = document.querySelector(`[data-row="${lastMove.row}"][data-col="${lastMove.col}"]`);
+            const piece = cell.querySelector('.piece');
+            if (piece) cell.removeChild(piece);
+            
+            currentPlayer = lastMove.player;
+            
+            const playerIndicator = document.getElementById('currentPlayer');
+            const playerName = document.getElementById('playerName');
+            playerIndicator.className = `player-indicator ${currentPlayer}`;
+            playerName.textContent = currentPlayer === 'black' ? '黑棋' : (gameMode === 'pve' ? 'AI' : '白棋');
+            
+            moveCount--;
+            document.getElementById('moveCount').textContent = moveCount;
+            
+            updateUndoButton();
+            
+            if (gameMode === 'pve' && currentPlayer === 'white') {
+                setTimeout(aiMove, 500);
+            }
+        }
+
+        function showWinModal() {
+            const modal = document.getElementById('winModal');
+            const winnerText = document.getElementById('winnerText');
+            const winnerPiece = document.getElementById('winnerPiece');
+            
+            let winnerName = '';
+            if (gameMode === 'pve') {
+                winnerName = currentPlayer === 'black' ? '玩家' : 'AI';
+            } else if (gameMode === 'puzzle') {
+                winnerName = '恭喜通关！';
+            } else {
+                winnerName = currentPlayer === 'black' ? '黑棋' : '白棋';
+            }
+            
+            winnerText.textContent = gameMode === 'puzzle' ? winnerName : `${winnerName}获胜！`;
+            winnerPiece.className = `modal-piece ${currentPlayer}`;
+            winnerPiece.style.display = 'block';
+            modal.style.display = 'flex';
+        }
+
+        function showDrawModal() {
+            const modal = document.getElementById('winModal');
+            const winnerText = document.getElementById('winnerText');
+            const winnerPiece = document.getElementById('winnerPiece');
+            
+            winnerText.textContent = gameMode === 'limited' ? '步数用尽！平局！' : '平局！棋盘已满';
+            winnerPiece.style.display = 'none';
+            modal.style.display = 'flex';
+        }
+
+        function showTimeoutModal() {
+            const modal = document.getElementById('winModal');
+            const winnerText = document.getElementById('winnerText');
+            const winnerPiece = document.getElementById('winnerPiece');
+            
+            const winner = currentPlayer;
+            winnerText.textContent = `${winner === 'black' ? '黑棋' : '白棋'}获胜！对手超时！`;
+            winnerPiece.className = `modal-piece ${winner}`;
+            winnerPiece.style.display = 'block';
+            modal.style.display = 'flex';
+        }
+
+        function restartGame() {
+            currentPlayer = gameMode === 'puzzle' ? 'black' : 'black';
+            gameOver = false;
+            winLine = [];
+            isAIThinking = false;
+            moveHistory = [];
+            moveCount = 0;
+            blockedCells = [];
+            hintCells = [];
+            
+            document.getElementById('currentPlayer').className = 'player-indicator black';
+            document.getElementById('playerName').textContent = gameMode === 'pve' ? '玩家' : '黑棋';
+            document.getElementById('moveCount').textContent = '0';
+            document.getElementById('winModal').style.display = 'none';
+            
+            if (gameMode === 'powerup') {
+                powerups = { undo: 3, block: 2, hint: 2 };
+                document.getElementById('undoCount').textContent = '3';
+                document.getElementById('blockCount').textContent = '2';
+                document.getElementById('hintCount').textContent = '2';
+            }
+            
+            initBoard();
+            resetTimer();
+        }
+
+        // 模式选择
+        function startGame(mode) {
+            gameMode = mode;
+            
+            document.getElementById('modeSelect').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'flex';
+            
+            switch (mode) {
+                case 'pvp':
+                    document.getElementById('gameTitle').textContent = '双人对战';
+                    document.getElementById('powerupsBar').style.display = 'none';
+                    break;
+                case 'pve':
+                    document.getElementById('gameTitle').textContent = '人机对战';
+                    document.getElementById('powerupsBar').style.display = 'none';
+                    break;
+                case 'timed':
+                    document.getElementById('gameTitle').textContent = '限时赛';
+                    document.getElementById('powerupsBar').style.display = 'none';
+                    break;
+                case 'limited':
+                    document.getElementById('gameTitle').textContent = '步数限制';
+                    document.getElementById('powerupsBar').style.display = 'none';
+                    maxMoves = MAX_MOVES;
+                    break;
+                case 'powerup':
+                    document.getElementById('gameTitle').textContent = '道具对战';
+                    document.getElementById('powerupsBar').style.display = 'flex';
+                    powerups = { undo: 3, block: 2, hint: 2 };
+                    document.getElementById('undoCount').textContent = '3';
+                    document.getElementById('blockCount').textContent = '2';
+                    document.getElementById('hintCount').textContent = '2';
+                    break;
+            }
+            
+            restartGame();
+        }
+
+        // 残局模式
+        function showPuzzleSelect() {
+            const puzzleGrid = document.getElementById('puzzleGrid');
+            puzzleGrid.innerHTML = '';
+            
+            puzzles.forEach(puzzle => {
+                const item = document.createElement('div');
+                item.className = 'puzzle-item';
+                item.onclick = () => startPuzzle(puzzle);
+                item.innerHTML = `
+                    <div class="puzzle-number">${puzzle.id}</div>
+                    <div class="puzzle-name">${puzzle.name}</div>
+                `;
+                puzzleGrid.appendChild(item);
+            });
+            
+            document.getElementById('puzzleSelect').style.display = 'flex';
+        }
+
+        function hidePuzzleSelect() {
+            document.getElementById('puzzleSelect').style.display = 'none';
+        }
+
+        function startPuzzle(puzzle) {
+            hidePuzzleSelect();
+            gameMode = 'puzzle';
+            
+            document.getElementById('modeSelect').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'flex';
+            document.getElementById('gameTitle').textContent = `残局闯关 - ${puzzle.name}`;
+            document.getElementById('powerupsBar').style.display = 'none';
+            
+            currentPlayer = puzzle.playerColor;
+            gameOver = false;
+            winLine = [];
+            isAIThinking = false;
+            moveHistory = [];
+            moveCount = 0;
+            
+            document.getElementById('currentPlayer').className = `player-indicator ${currentPlayer}`;
+            document.getElementById('playerName').textContent = '玩家';
+            document.getElementById('moveCount').textContent = '0';
+            
+            initBoard(puzzle.board);
+        }
+
+        // 设置
+        function showSettings() {
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        function hideSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        function applySettings() {
+            BOARD_SIZE = parseInt(document.getElementById('boardSizeSelect').value);
+            hideSettings();
+            restartGame();
+        }
+
+        function backToMenu() {
+            stopTimer();
+            document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('modeSelect').style.display = 'flex';
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initBoard();
+        });
+    </script>
+</body>
+</html>
