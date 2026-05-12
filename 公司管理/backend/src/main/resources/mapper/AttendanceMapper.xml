@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.companymanagement.mapper.AttendanceMapper">
+    <select id="selectByCompanyIdAndDateRange" resultType="com.example.companymanagement.entity.Attendance">
+        SELECT * FROM attendance 
+        WHERE company_id = #{companyId} 
+          AND attendance_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY attendance_date DESC
+    </select>
+    
+    <select id="selectByEmployeeIdAndDateRange" resultType="com.example.companymanagement.entity.Attendance">
+        SELECT * FROM attendance 
+        WHERE employee_id = #{employeeId} 
+          AND attendance_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY attendance_date DESC
+    </select>
+</mapper>

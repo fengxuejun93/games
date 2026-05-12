@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>方块冲冲冲</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="ui-overlay">
+            <div id="main-menu" class="menu active">
+                <h1 class="game-title">方块冲冲冲</h1>
+                <div class="menu-buttons">
+                    <button class="menu-btn" id="start-single">单人闯关</button>
+                    <button class="menu-btn" id="start-endless">无尽挑战</button>
+                    <button class="menu-btn" id="start-time">限时竞速</button>
+                    <button class="menu-btn" id="start-multi">多人PK</button>
+                    <button class="menu-btn" id="leaderboard-btn">排行榜</button>
+                    <button class="menu-btn" id="shop-btn">皮肤商店</button>
+                    <button class="menu-btn" id="settings-btn">设置</button>
+                </div>
+            </div>
+            
+            <div id="game-ui" class="ui-panel">
+                <div class="game-stats">
+                    <span class="stat-item">分数: <span id="score">0</span></span>
+                    <span class="stat-item">距离: <span id="distance">0</span>m</span>
+                    <span class="stat-item">关卡: <span id="level">1</span></span>
+                    <span class="stat-item time-stat" style="display:none">时间: <span id="time-left">60</span>s</span>
+                </div>
+                <div class="game-controls">
+                    <button class="control-btn jump-btn" id="jump-btn">跳跃</button>
+                    <button class="control-btn slide-btn" id="slide-btn">下滑</button>
+                </div>
+            </div>
+            
+            <div id="game-over" class="menu">
+                <h2>游戏结束</h2>
+                <p class="final-score">最终得分: <span id="final-score">0</span></p>
+                <p class="final-distance">跑过距离: <span id="final-distance">0</span>m</p>
+                <div id="stars-display" style="display:none;">
+                    <span class="star" id="star1">★</span>
+                    <span class="star" id="star2">★</span>
+                    <span class="star" id="star3">★</span>
+                </div>
+                <button class="menu-btn" id="restart-btn">再来一次</button>
+                <button class="menu-btn" id="back-menu-btn">返回主菜单</button>
+            </div>
+            
+            <div id="level-select" class="menu">
+                <h2>选择关卡</h2>
+                <div id="level-grid" class="level-grid"></div>
+                <button class="menu-btn" id="back-from-level">返回</button>
+            </div>
+            
+            <div id="leaderboard-menu" class="menu">
+                <h2>🏆 排行榜</h2>
+                <div id="leaderboard-content" class="leaderboard"></div>
+                <button class="menu-btn" id="back-from-leaderboard">返回</button>
+            </div>
+            
+            <div id="shop-menu" class="menu">
+                <h2>皮肤商店</h2>
+                <div id="skin-list" class="skin-grid"></div>
+                <button class="menu-btn" id="back-from-shop">返回</button>
+            </div>
+            
+            <div id="settings-menu" class="menu">
+                <h2>设置</h2>
+                <div class="settings-item">
+                    <label>音效</label>
+                    <input type="checkbox" id="sound-toggle" checked>
+                </div>
+                <div class="settings-item">
+                    <label>背景音乐</label>
+                    <input type="checkbox" id="music-toggle" checked>
+                </div>
+                <button class="menu-btn" id="back-from-settings">返回</button>
+            </div>
+            
+            <div id="multi-menu" class="menu">
+                <h2>多人联机</h2>
+                <p>正在连接服务器...</p>
+                <div id="player-list"></div>
+                <button class="menu-btn" id="join-game">加入游戏</button>
+                <button class="menu-btn" id="back-from-multi">返回</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/game.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/obstacle.js"></script>
+    <script src="js/collectible.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

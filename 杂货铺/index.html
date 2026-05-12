@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>脑洞杂货铺</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header" :style="{background: currentTheme?.headerBg}">
+            <div class="shop-name">
+                <span class="star">★</span>
+                <span>脑洞杂货铺</span>
+                <span class="star">★</span>
+            </div>
+            <div class="shop-info">
+                <div class="level">等级 Lv.{{level}}</div>
+                <div class="coins">💰 {{coins}}</div>
+                <div class="love">💕 {{love}}</div>
+                <div class="exp">经验 {{exp}}/{{nextExp}}</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="shop-area" :style="{background: currentTheme?.shopBg}">
+                <div class="shop-level-badge">🏠 {{storeLevel?.name || '迷你小店'}}</div>
+                <div class="shelf-grid">
+                    <div class="shelf" v-for="(item, index) in currentShelf" :key="index" 
+                         :class="{ 'selected': selectedItem === index, 'locked': item.locked }"
+                         :style="{background: item.locked ? '#d3d3d3' : (currentTheme?.shelfBg || '#87ceeb')}"
+                         @click="selectItem(index)">
+                        <div class="item-icon" v-if="!item.locked">{{item.icon}}</div>
+                        <div class="lock-icon" v-else>🔒</div>
+                        <div class="item-name">{{item.locked ? '???' : item.name}}</div>
+                        <div class="item-count" v-if="!item.locked && item.count > 1">x{{item.count}}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="customer-area" :style="{background: currentTheme?.customerBg}">
+                <div class="customer-box" v-if="currentCustomer">
+                    <div class="customer-avatar">{{currentCustomer.avatar}}</div>
+                    <div class="customer-name">{{currentCustomer.name}}</div>
+                    <div class="customer-dialog">
+                        <div class="dialog-bubble">
+                            <span>{{currentCustomer.request}}</span>
+                        </div>
+                    </div>
+                    <div class="customer-hint">
+                        <span class="hint-icon">💡</span>
+                        <span>{{currentCustomer.hint}}</span>
+                    </div>
+                    <div class="customer-reward">
+                        <span>💰 {{currentCustomer.coinReward}}</span>
+                        <span>💕 {{currentCustomer.loveReward}}</span>
+                        <span>⭐ {{currentCustomer.exp}} EXP</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-area">
+                <button class="action-btn sell-btn" @click="sellItem" :disabled="!selectedItem || currentCustomer.locked">
+                    🎁 卖出商品
+                </button>
+                <button class="action-btn skip-btn" @click="skipCustomer" :disabled="currentCustomer.locked">
+                    ⏭️ 跳过顾客
+                </button>
+                <button class="action-btn shop-btn" @click="openShop">
+                    🛒 商店
+                </button>
+                <button class="action-btn love-btn" @click="openLoveShop">
+                    💕 爱心商店
+                </button>
+                <button class="action-btn inventory-btn" @click="openInventory">
+                    📦 仓库
+                </button>
+                <button class="action-btn decoration-btn" @click="openDecoration">
+                    🎨 装修
+                </button>
+            </div>
+        </div>
+
+        <div class="footer" :style="{background: currentTheme?.floorBg}">
+            <div class="progress-bar">
+                <div class="progress-fill" :style="{width: progressPercent + '%'}"></div>
+            </div>
+            <div class="day-info">第 {{day}} 天 · 今日顾客 {{servedToday}}/{{dailyTarget}} · 货架 {{inventory.length}}/{{maxShelves}}</div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" v-if="showModal" @click="closeModal">
+        <div class="modal" @click.stop>
+            <div class="modal-header">
+                <span>{{modalTitle}}</span>
+                <button class="close-btn" @click="closeModal">✕</button>
+            </div>
+            <div class="modal-content">
+                <div class="reward-item" v-if="rewardShow">
+                    <div class="reward-icon">{{rewardIcon}}</div>
+                    <div class="reward-text">{{rewardText}}</div>
+                </div>
+                <div class="shop-items" v-if="showShop">
+                    <div class="shop-item" v-for="(item, index) in shopItems" :key="index">
+                        <div class="shop-item-icon">{{item.icon}}</div>
+                        <div class="shop-item-info">
+                            <div class="shop-item-name">{{item.name}}</div>
+                            <div class="shop-item-desc">{{item.desc}}</div>
+                            <div class="shop-item-price">💰 {{item.coinPrice}}</div>
+                        </div>
+                        <button class="buy-btn" @click="buyItem(index)" :disabled="coins < item.coinPrice">
+                            购买
+                        </button>
+                    </div>
+                    <div class="empty-hint" v-if="shopItems.length === 0">暂无可购买商品</div>
+                </div>
+                <div class="love-shop-items" v-if="showLoveShop">
+                    <div class="love-shop-item" v-for="(item, index) in loveShopItems" :key="index">
+                        <div class="love-shop-item-icon">{{item.icon}}</div>
+                        <div class="love-shop-item-info">
+                            <div class="love-shop-item-name">{{item.name}}</div>
+                            <div class="love-shop-item-desc">{{item.desc}}</div>
+                            <div class="love-shop-item-price">💕 {{item.lovePrice}}</div>
+                        </div>
+                        <button class="love-buy-btn" @click="buyLoveItem(index)" :disabled="love < item.lovePrice">
+                            兑换
+                        </button>
+                    </div>
+                    <div class="empty-hint" v-if="loveShopItems.length === 0">暂无可兑换商品</div>
+                </div>
+                <div class="inventory-items" v-if="showInventory">
+                    <div class="inventory-item" v-for="(item, index) in inventory" :key="index">
+                        <div class="inventory-item-icon">{{item.icon}}</div>
+                        <div class="inventory-item-info">
+                            <div class="inventory-item-name">{{item.name}}</div>
+                            <div class="inventory-item-count">数量: {{item.count}}</div>
+                        </div>
+                    </div>
+                    <div class="empty-hint" v-if="inventory.length === 0">仓库空空如也</div>
+                </div>
+                <div class="decoration-items" v-if="showDecoration">
+                    <div class="decoration-item" v-for="(theme, index) in decorationItems" :key="index"
+                         :class="{ 'owned': theme.owned, 'selected': currentTheme?.id === theme.id }">
+                        <div class="decoration-preview" :style="{background: theme.headerBg}">
+                            <div class="preview-icon">🏪</div>
+                        </div>
+                        <div class="decoration-info">
+                            <div class="decoration-name">{{theme.name}}</div>
+                            <div class="decoration-price" v-if="!theme.owned">💰 {{theme.price}}</div>
+                            <div class="decoration-status" v-else>✓ 已拥有</div>
+                        </div>
+                        <button class="decorate-btn" v-if="!theme.owned" @click="buyTheme(index)" :disabled="coins < theme.price">
+                            购买
+                        </button>
+                        <button class="select-btn" v-else @click="selectTheme(index)">
+                            {{currentTheme?.id === theme.id ? '使用中' : '使用'}}
+                        </button>
+                    </div>
+                </div>
+                <div class="level-up-content" v-if="showLevelUp">
+                    <div class="level-up-icon">🎉</div>
+                    <div class="level-up-text">恭喜升级！</div>
+                    <div class="level-up-level">Lv.{{level}}</div>
+                    <div class="level-up-reward">解锁新商品和功能！</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="confirm-btn" @click="confirmModal">{{confirmText}}</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" v-if="toastShow">
+        {{toastText}}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
