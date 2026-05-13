@@ -1269,11 +1269,12 @@
         function updateUndoButton() {
             const undoBtn = document.getElementById('undoBtn');
             const hasHistory = moveHistory.length > 0;
-            const hasUndoPowerup = gameMode === 'powerup' && powerups.undo > 0;
             
+            // 道具模式下隐藏控制区的悔棋按钮（使用道具栏的悔棋道具）
             if (gameMode === 'powerup') {
-                undoBtn.disabled = !hasUndoPowerup || gameOver;
+                undoBtn.style.display = 'none';
             } else {
+                undoBtn.style.display = 'inline-block';
                 undoBtn.disabled = !hasHistory || gameOver;
             }
         }
@@ -1478,9 +1479,27 @@
             document.getElementById('modeSelect').style.display = 'flex';
         }
 
+        // 初始化事件监听
+        function initEventListeners() {
+            // 悔棋按钮
+            document.getElementById('undoBtn').addEventListener('click', handleUndoClick);
+        }
+
+        // 处理悔棋按钮点击
+        function handleUndoClick() {
+            if (gameMode === 'powerup') {
+                // 道具模式下使用道具悔棋
+                usePowerup('undo');
+            } else {
+                // 普通模式下直接悔棋
+                undoMove();
+            }
+        }
+
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
             initBoard();
+            initEventListeners();
         });
     </script>
 </body>
