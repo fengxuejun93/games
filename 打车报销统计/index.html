@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打车报销统计</title>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --workday-gradient: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            --weekend-gradient: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            --pending-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --approved-gradient: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            --rejected-gradient: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --pending-color: #6366f1;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            min-height: 100vh;
+            padding: 24px 16px;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stats-grid.category {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .stats-grid.approval {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .stat-card {
+            background: var(--primary-gradient);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            color: white;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .stat-card.workday {
+            background: var(--workday-gradient);
+        }
+
+        .stat-card.weekend {
+            background: var(--weekend-gradient);
+        }
+
+        .stat-card.pending {
+            background: var(--pending-gradient);
+        }
+
+        .stat-card.approved {
+            background: var(--approved-gradient);
+        }
+
+        .stat-card.rejected {
+            background: var(--rejected-gradient);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: -1px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group.full {
+            grid-column: span 2;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            color: var(--text-primary);
+            background-color: #f8fafc;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: #8b5cf6;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted);
+        }
+
+        .form-control.textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            gap: 6px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            width: 100%;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        .btn-clear {
+            background: #f1f5f9;
+            color: var(--text-secondary);
+            padding: 10px 20px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-clear:hover:not(:disabled) {
+            background: #e2e8f0;
+        }
+
+        .btn-edit {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+
+        .btn-edit:hover:not(:disabled) {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .btn-approve {
+            background: var(--success-color);
+            color: white;
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+
+        .btn-approve:hover:not(:disabled) {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .btn-reject {
+            background: var(--danger-color);
+            color: white;
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+
+        .btn-reject:hover:not(:disabled) {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        .btn-save {
+            background: var(--success-color);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-save:hover:not(:disabled) {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-cancel {
+            background: #f1f5f9;
+            color: var(--text-secondary);
+            width: 100%;
+            margin-top: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-cancel:hover:not(:disabled) {
+            background: #e2e8f0;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .list-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .list-count {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-left: 8px;
+        }
+
+        .trip-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .trip-item {
+            background: #fafafa;
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .trip-item:hover {
+            background: #f8fafc;
+            border-color: var(--border-color);
+        }
+
+        .trip-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .trip-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+
+        .trip-date {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .trip-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .trip-tag.workday {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .trip-tag.weekend {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .trip-tag.pending {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .trip-tag.approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .trip-tag.rejected {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .trip-route {
+            font-size: 15px;
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .trip-amount {
+            font-size: 17px;
+            font-weight: 600;
+            color: #6366f1;
+        }
+
+        .trip-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            font-style: italic;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .approval-comment {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            padding: 6px 10px;
+            background: #f1f5f9;
+            border-radius: var(--radius-sm);
+            margin-top: 8px;
+        }
+
+        .approval-comment strong {
+            color: var(--text-secondary);
+        }
+
+        .trip-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-left: 12px;
+        }
+
+        .approval-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .empty-desc {
+            font-size: 13px;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: var(--radius-xl);
+            padding: 28px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: var(--shadow-xl);
+            animation: slideUp 0.2s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: #f1f5f9;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: #e2e8f0;
+            color: var(--text-primary);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--text-primary);
+            color: white;
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            background: var(--success-color);
+        }
+
+        .toast.error {
+            background: var(--danger-color);
+        }
+
+        .toast.warning {
+            background: var(--warning-color);
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid.category {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stats-grid.approval {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full {
+                grid-column: span 1;
+            }
+
+            .trip-item {
+                flex-direction: column;
+            }
+
+            .trip-actions {
+                flex-direction: row;
+                margin-left: 0;
+                margin-top: 12px;
+            }
+
+            .trip-meta {
+                flex-wrap: wrap;
+            }
+
+            .header h1 {
+                font-size: 26px;
+            }
+
+            .approval-actions {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚕 打车报销统计</h1>
+            <p>记录您的每一次出行，轻松管理报销与审批</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalTrips">0</div>
+                <div class="stat-label">总出行次数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalAmount">¥0.00</div>
+                <div class="stat-label">总消费金额</div>
+            </div>
+        </div>
+
+        <div class="stats-grid category">
+            <div class="stat-card workday">
+                <div class="stat-value" id="workdayTrips">0</div>
+                <div class="stat-label">工作日次数</div>
+            </div>
+            <div class="stat-card workday">
+                <div class="stat-value" id="workdayAmount">¥0.00</div>
+                <div class="stat-label">工作日金额</div>
+            </div>
+            <div class="stat-card weekend">
+                <div class="stat-value" id="weekendTrips">0</div>
+                <div class="stat-label">周末次数</div>
+            </div>
+            <div class="stat-card weekend">
+                <div class="stat-value" id="weekendAmount">¥0.00</div>
+                <div class="stat-label">周末金额</div>
+            </div>
+        </div>
+
+        <div class="stats-grid approval">
+            <div class="stat-card pending">
+                <div class="stat-value" id="pendingTrips">0</div>
+                <div class="stat-label">待审批</div>
+            </div>
+            <div class="stat-card approved">
+                <div class="stat-value" id="approvedTrips">0</div>
+                <div class="stat-label">已通过</div>
+            </div>
+            <div class="stat-card rejected">
+                <div class="stat-value" id="rejectedTrips">0</div>
+                <div class="stat-label">已驳回</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">添加行程</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="date">日期</label>
+                    <input type="date" id="date" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="amount">金额</label>
+                    <input type="number" id="amount" class="form-control" placeholder="请输入金额" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="startPoint">起点</label>
+                    <input type="text" id="startPoint" class="form-control" placeholder="请输入起点" required>
+                </div>
+                <div class="form-group">
+                    <label for="endPoint">终点</label>
+                    <input type="text" id="endPoint" class="form-control" placeholder="请输入终点" required>
+                </div>
+                <div class="form-group full">
+                    <label for="note">备注（选填）</label>
+                    <textarea id="note" class="form-control textarea" placeholder="添加备注信息"></textarea>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="addTrip()">添加行程</button>
+        </div>
+
+        <div class="card">
+            <div class="list-header">
+                <div class="list-title">
+                    行程记录
+                    <span class="list-count" id="tripCount">共 0 条</span>
+                </div>
+                <button class="btn btn-clear" onclick="clearAllTrips()" id="clearBtn" style="display: none;">清空全部</button>
+            </div>
+            <div id="tripList" class="trip-list">
+                <div class="empty-state">
+                    <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <div class="empty-title">暂无行程记录</div>
+                    <div class="empty-desc">添加您的第一条行程吧</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">编辑行程</div>
+                <button class="modal-close" onclick="closeEditModal()">×</button>
+            </div>
+            <input type="hidden" id="editIndex">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="editDate">日期</label>
+                    <input type="date" id="editDate" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="editAmount">金额</label>
+                    <input type="number" id="editAmount" class="form-control" placeholder="请输入金额" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="editStartPoint">起点</label>
+                    <input type="text" id="editStartPoint" class="form-control" placeholder="请输入起点" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEndPoint">终点</label>
+                    <input type="text" id="editEndPoint" class="form-control" placeholder="请输入终点" required>
+                </div>
+                <div class="form-group full">
+                    <label for="editNote">备注（选填）</label>
+                    <textarea id="editNote" class="form-control textarea" placeholder="添加备注信息"></textarea>
+                </div>
+            </div>
+            <button class="btn btn-save" onclick="saveEdit()">保存修改</button>
+            <button class="btn btn-cancel" onclick="closeEditModal()">取消</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="approvalModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="approvalModalTitle">审批操作</div>
+                <button class="modal-close" onclick="closeApprovalModal()">×</button>
+            </div>
+            <input type="hidden" id="approvalIndex">
+            <input type="hidden" id="approvalAction">
+            <div class="form-group full">
+                <label for="approvalComment">审批意见（选填）</label>
+                <textarea id="approvalComment" class="form-control textarea" placeholder="请输入审批意见"></textarea>
+            </div>
+            <div class="btn-group" style="gap: 12px;">
+                <button class="btn btn-approve" onclick="confirmApproval('approved')">通过</button>
+                <button class="btn btn-reject" onclick="confirmApproval('rejected')">驳回</button>
+            </div>
+            <button class="btn btn-cancel" onclick="closeApprovalModal()" style="margin-top: 12px;">取消</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const STORAGE_KEY = 'taxi_trips';
+        const STATUS = {
+            PENDING: 'pending',
+            APPROVED: 'approved',
+            REJECTED: 'rejected'
+        };
+
+        function getTrips() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch {
+                return [];
+            }
+        }
+
+        function saveTrips(trips) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(trips));
+        }
+
+        function isWeekend(dateStr) {
+            try {
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) return false;
+                const day = date.getDay();
+                return day === 0 || day === 6;
+            } catch {
+                return false;
+            }
+        }
+
+        function showToast(message, type = 'success', duration = 2000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+
+        function updateStats() {
+            const trips = getTrips();
+            const totalTrips = trips.length;
+            const totalAmount = trips.reduce((sum, trip) => {
+                const amount = parseFloat(trip.amount);
+                return sum + (isNaN(amount) ? 0 : amount);
+            }, 0);
+            
+            const workdayData = trips.filter(trip => !isWeekend(trip.date));
+            const workdayTrips = workdayData.length;
+            const workdayAmount = workdayData.reduce((sum, trip) => {
+                const amount = parseFloat(trip.amount);
+                return sum + (isNaN(amount) ? 0 : amount);
+            }, 0);
+            
+            const weekendData = trips.filter(trip => isWeekend(trip.date));
+            const weekendTrips = weekendData.length;
+            const weekendAmount = weekendData.reduce((sum, trip) => {
+                const amount = parseFloat(trip.amount);
+                return sum + (isNaN(amount) ? 0 : amount);
+            }, 0);
+
+            const pendingTrips = trips.filter(trip => trip.status === STATUS.PENDING).length;
+            const approvedTrips = trips.filter(trip => trip.status === STATUS.APPROVED).length;
+            const rejectedTrips = trips.filter(trip => trip.status === STATUS.REJECTED).length;
+            
+            document.getElementById('totalTrips').textContent = totalTrips;
+            document.getElementById('totalAmount').textContent = formatAmount(totalAmount);
+            document.getElementById('workdayTrips').textContent = workdayTrips;
+            document.getElementById('workdayAmount').textContent = formatAmount(workdayAmount);
+            document.getElementById('weekendTrips').textContent = weekendTrips;
+            document.getElementById('weekendAmount').textContent = formatAmount(weekendAmount);
+            document.getElementById('pendingTrips').textContent = pendingTrips;
+            document.getElementById('approvedTrips').textContent = approvedTrips;
+            document.getElementById('rejectedTrips').textContent = rejectedTrips;
+            document.getElementById('tripCount').textContent = `共 ${totalTrips} 条`;
+            document.getElementById('clearBtn').style.display = totalTrips > 0 ? 'block' : 'none';
+        }
+
+        function formatAmount(amount) {
+            return '¥' + amount.toFixed(2);
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case STATUS.APPROVED: return '已通过';
+                case STATUS.REJECTED: return '已驳回';
+                default: return '待审批';
+            }
+        }
+
+        function renderTripList() {
+            const trips = getTrips();
+            const tripList = document.getElementById('tripList');
+            
+            if (trips.length === 0) {
+                tripList.innerHTML = `
+                    <div class="empty-state">
+                        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        <div class="empty-title">暂无行程记录</div>
+                        <div class="empty-desc">添加您的第一条行程吧</div>
+                    </div>
+                `;
+                return;
+            }
+
+            tripList.innerHTML = trips.map((trip, index) => {
+                const weekend = isWeekend(trip.date);
+                const status = trip.status || STATUS.PENDING;
+                const canApprove = status === STATUS.PENDING;
+                
+                return `
+                    <div class="trip-item">
+                        <div class="trip-info">
+                            <div class="trip-meta">
+                                <span class="trip-date">${trip.date}</span>
+                                <span class="trip-tag ${weekend ? 'weekend' : 'workday'}">${weekend ? '周末' : '工作日'}</span>
+                                <span class="trip-tag ${status}">${getStatusText(status)}</span>
+                            </div>
+                            <div class="trip-route">${trip.startPoint} → ${trip.endPoint}</div>
+                            <div class="trip-amount">${formatAmount(parseFloat(trip.amount) || 0)}</div>
+                            ${trip.note ? `<div class="trip-note">${trip.note}</div>` : ''}
+                            ${trip.approvalComment ? `<div class="approval-comment"><strong>审批意见：</strong>${trip.approvalComment}</div>` : ''}
+                            ${canApprove ? `
+                                <div class="approval-actions">
+                                    <button class="btn btn-approve" onclick="openApprovalModal(${index})">通过</button>
+                                    <button class="btn btn-reject" onclick="openApprovalModal(${index})">驳回</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="trip-actions">
+                            <button class="btn btn-edit" onclick="openEditModal(${index})">编辑</button>
+                            <button class="btn btn-danger" onclick="deleteTrip(${index})">删除</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function addTrip() {
+            const date = document.getElementById('date').value;
+            const startPoint = document.getElementById('startPoint').value.trim();
+            const endPoint = document.getElementById('endPoint').value.trim();
+            const amount = document.getElementById('amount').value;
+            const note = document.getElementById('note').value.trim();
+
+            if (!date) {
+                showToast('请选择日期', 'warning');
+                return;
+            }
+            
+            if (!startPoint) {
+                showToast('请输入起点', 'warning');
+                document.getElementById('startPoint').focus();
+                return;
+            }
+            
+            if (!endPoint) {
+                showToast('请输入终点', 'warning');
+                document.getElementById('endPoint').focus();
+                return;
+            }
+            
+            if (!amount || parseFloat(amount) <= 0) {
+                showToast('请输入有效的金额', 'warning');
+                document.getElementById('amount').focus();
+                return;
+            }
+
+            const trips = getTrips();
+            trips.push({ 
+                date, 
+                startPoint, 
+                endPoint, 
+                amount, 
+                note,
+                status: STATUS.PENDING,
+                approvalComment: ''
+            });
+            saveTrips(trips);
+            updateStats();
+            renderTripList();
+            showToast('行程添加成功，等待审批');
+
+            document.getElementById('date').value = '';
+            document.getElementById('startPoint').value = '';
+            document.getElementById('endPoint').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('note').value = '';
+        }
+
+        function deleteTrip(index) {
+            if (!confirm('确定要删除这条记录吗？')) return;
+            
+            const trips = getTrips();
+            trips.splice(index, 1);
+            saveTrips(trips);
+            updateStats();
+            renderTripList();
+            showToast('已删除该记录');
+        }
+
+        function clearAllTrips() {
+            if (!confirm('确定要清空所有记录吗？此操作不可恢复。')) return;
+            
+            saveTrips([]);
+            updateStats();
+            renderTripList();
+            showToast('已清空所有记录');
+        }
+
+        function openEditModal(index) {
+            const trips = getTrips();
+            const trip = trips[index];
+            
+            document.getElementById('editIndex').value = index;
+            document.getElementById('editDate').value = trip.date;
+            document.getElementById('editStartPoint').value = trip.startPoint;
+            document.getElementById('editEndPoint').value = trip.endPoint;
+            document.getElementById('editAmount').value = trip.amount;
+            document.getElementById('editNote').value = trip.note || '';
+            
+            document.getElementById('editModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        function saveEdit() {
+            const index = parseInt(document.getElementById('editIndex').value);
+            const date = document.getElementById('editDate').value;
+            const startPoint = document.getElementById('editStartPoint').value.trim();
+            const endPoint = document.getElementById('editEndPoint').value.trim();
+            const amount = document.getElementById('editAmount').value;
+            const note = document.getElementById('editNote').value.trim();
+
+            if (!date) {
+                showToast('请选择日期', 'warning');
+                return;
+            }
+            
+            if (!startPoint) {
+                showToast('请输入起点', 'warning');
+                return;
+            }
+            
+            if (!endPoint) {
+                showToast('请输入终点', 'warning');
+                return;
+            }
+            
+            if (!amount || parseFloat(amount) <= 0) {
+                showToast('请输入有效的金额', 'warning');
+                return;
+            }
+
+            const trips = getTrips();
+            trips[index] = { 
+                ...trips[index],
+                date, 
+                startPoint, 
+                endPoint, 
+                amount, 
+                note 
+            };
+            saveTrips(trips);
+            updateStats();
+            renderTripList();
+            closeEditModal();
+            showToast('修改保存成功');
+        }
+
+        function openApprovalModal(index) {
+            document.getElementById('approvalIndex').value = index;
+            document.getElementById('approvalComment').value = '';
+            document.getElementById('approvalModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeApprovalModal() {
+            document.getElementById('approvalModal').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        function confirmApproval(action) {
+            const index = parseInt(document.getElementById('approvalIndex').value);
+            const comment = document.getElementById('approvalComment').value.trim();
+            
+            const trips = getTrips();
+            trips[index] = {
+                ...trips[index],
+                status: action,
+                approvalComment: comment
+            };
+            saveTrips(trips);
+            updateStats();
+            renderTripList();
+            closeApprovalModal();
+            
+            const message = action === STATUS.APPROVED ? '审批通过' : '已驳回';
+            showToast(message);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+            
+            updateStats();
+            renderTripList();
+
+            document.getElementById('editModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('editModal')) {
+                    closeEditModal();
+                }
+            });
+
+            document.getElementById('approvalModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('approvalModal')) {
+                    closeApprovalModal();
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (document.getElementById('editModal').classList.contains('show')) {
+                        closeEditModal();
+                    } else if (document.getElementById('approvalModal').classList.contains('show')) {
+                        closeApprovalModal();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

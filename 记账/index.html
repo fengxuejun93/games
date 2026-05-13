@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>记账本</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --primary-dark: #4f46e5;
+      --success: #10b981;
+      --success-light: #d1fae5;
+      --danger: #ef4444;
+      --danger-light: #fee2e2;
+      --warning: #f59e0b;
+      --warning-light: #fef3c7;
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 1rem;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    .card {
+      background-color: var(--bg-card);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .card-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .card-subtitle {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-md);
+      font-weight: 500;
+      font-size: 0.875rem;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+      outline: none;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+
+    .btn-success:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+      background-color: #f1f5f9;
+      color: var(--text-secondary);
+    }
+
+    .btn-secondary:hover {
+      background-color: #e2e8f0;
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+    }
+
+    .btn-outline:hover {
+      background-color: #f8fafc;
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-icon {
+      padding: 0.5rem;
+      border-radius: var(--radius-sm);
+    }
+
+    .btn-sm {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+    }
+
+    .input-group {
+      margin-bottom: 1rem;
+    }
+
+    .input-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      background-color: #fafafa;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      background-color: white;
+    }
+
+    .input-field::placeholder {
+      color: var(--text-muted);
+    }
+
+    .input-with-prefix {
+      position: relative;
+    }
+
+    .input-prefix {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    .input-with-prefix .input-field {
+      padding-left: 2.5rem;
+    }
+
+    .category-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .category-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      background-color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .category-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .category-btn.active {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .stat-card {
+      background-color: white;
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-value {
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+
+    .stat-value.income {
+      color: var(--success);
+    }
+
+    .stat-value.expense {
+      color: var(--danger);
+    }
+
+    .stat-value.balance {
+      color: var(--primary);
+    }
+
+    .transaction-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .transaction-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      background-color: #fafafa;
+      border-radius: var(--radius-lg);
+      margin-bottom: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .transaction-item:hover {
+      background-color: #f1f5f9;
+      transform: translateX(4px);
+    }
+
+    .transaction-left {
+      display: flex;
+      align-items: center;
+      flex: 1;
+    }
+
+    .transaction-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 0.75rem;
+    }
+
+    .transaction-icon.income {
+      background-color: var(--success-light);
+    }
+
+    .transaction-icon.expense {
+      background-color: var(--danger-light);
+    }
+
+    .transaction-icon i {
+      font-size: 1rem;
+    }
+
+    .transaction-icon.income i {
+      color: var(--success);
+    }
+
+    .transaction-icon.expense i {
+      color: var(--danger);
+    }
+
+    .transaction-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .transaction-category {
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .transaction-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.125rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .transaction-right {
+      display: flex;
+      align-items: center;
+    }
+
+    .transaction-amount {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+
+    .transaction-amount.income {
+      color: var(--success);
+    }
+
+    .transaction-amount.expense {
+      color: var(--danger);
+    }
+
+    .transaction-actions {
+      display: flex;
+      gap: 0.25rem;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .transaction-item:hover .transaction-actions {
+      opacity: 1;
+    }
+
+    .action-btn {
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 50%;
+      border: none;
+      background-color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn.edit {
+      color: var(--primary);
+    }
+
+    .action-btn.delete {
+      color: var(--danger);
+    }
+
+    .action-btn:hover {
+      transform: scale(1.1);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      align-items: center;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal-content {
+      background-color: white;
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      width: 100%;
+      max-width: 480px;
+      max-height: 85vh;
+      overflow-y: auto;
+      animation: slideUp 0.3s ease;
+    }
+
+    .modal-overlay.active .modal-content {
+      border-radius: var(--radius-xl);
+      max-height: 90vh;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100%);
+      }
+      to {
+        transform: translateY(0);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      background-color: white;
+      z-index: 1;
+    }
+
+    .modal-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .modal-close {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      border: none;
+      background-color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+    }
+
+    .modal-close:hover {
+      background-color: #e2e8f0;
+      color: var(--text-secondary);
+    }
+
+    .modal-body {
+      padding: 1.25rem;
+    }
+
+    .modal-footer {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 0.5rem;
+      position: sticky;
+      bottom: 0;
+      background-color: white;
+    }
+
+    .modal-footer .btn {
+      flex: 1;
+      padding: 0.75rem 1rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      background-color: #f8fafc;
+      padding: 0.25rem;
+      border-radius: var(--radius-lg);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-md);
+      border: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: var(--text-secondary);
+      background-color: transparent;
+    }
+
+    .tab-btn.active {
+      background-color: white;
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .budget-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .budget-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem;
+      background-color: #fafafa;
+      border-radius: var(--radius-lg);
+      transition: all 0.2s ease;
+    }
+
+    .budget-item:hover {
+      background-color: #f1f5f9;
+    }
+
+    .budget-info {
+      flex: 1;
+    }
+
+    .budget-category {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .budget-progress {
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+    }
+
+    .budget-progress.over {
+      color: var(--danger);
+    }
+
+    .budget-progress.under {
+      color: var(--success);
+    }
+
+    .budget-progress.normal {
+      color: var(--text-muted);
+    }
+
+    .budget-input {
+      width: 6rem;
+      padding: 0.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      text-align: right;
+      transition: all 0.2s ease;
+    }
+
+    .budget-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .select-field {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      background-color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 0.5rem center;
+      background-repeat: no-repeat;
+      background-size: 1.5em 1.5em;
+      padding-right: 2.5rem;
+    }
+
+    .select-field:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-muted);
+    }
+
+    .empty-state-icon {
+      font-size: 4rem;
+      opacity: 0.5;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state-text {
+      font-size: 0.875rem;
+    }
+
+    .period-selector {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .period-selector .select-field {
+      flex: 1;
+    }
+
+    .header {
+      text-align: center;
+      padding: 1.5rem 0 1rem;
+    }
+
+    .header-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .header-subtitle {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-actions .btn {
+      flex: 1;
+      padding: 0.625rem 1rem;
+    }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .filter-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-md);
+      background-color: white;
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .alert-over-budget {
+      background-color: var(--warning-light);
+      border-left: 3px solid var(--warning);
+      padding: 0.75rem;
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      margin-bottom: 1rem;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.8;
+      }
+    }
+
+    .alert-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #92400e;
+      margin-bottom: 0.25rem;
+    }
+
+    .alert-message {
+      font-size: 0.75rem;
+      color: #b45309;
+    }
+
+    @media (min-width: 640px) {
+      .container {
+        padding: 1.5rem;
+      }
+
+      .modal-content {
+        border-radius: var(--radius-xl);
+        max-height: 90vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1 class="header-title">记账本</h1>
+      <p class="header-subtitle">记录每一笔收支</p>
+    </header>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">总收入</div>
+        <div class="stat-value income" id="totalIncome">¥0.00</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">总支出</div>
+        <div class="stat-value expense" id="totalExpense">¥0.00</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">余额</div>
+        <div class="stat-value balance" id="balance">¥0.00</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">添加记录</h2>
+        <button id="btnBudget" class="btn btn-outline btn-sm">
+          <i class="fa fa-tasks mr-1"></i>预算
+        </button>
+      </div>
+
+      <div class="form-actions">
+        <button id="btnIncome" class="btn btn-success">
+          <i class="fa fa-plus-circle mr-1"></i>收入
+        </button>
+        <button id="btnExpense" class="btn btn-danger">
+          <i class="fa fa-minus-circle mr-1"></i>支出
+        </button>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">金额</label>
+        <div class="input-with-prefix">
+          <span class="input-prefix">¥</span>
+          <input type="number" id="amount" placeholder="0.00" class="input-field">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">分类</label>
+        <div class="category-grid" id="categoryList"></div>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">备注</label>
+        <input type="text" id="remark" placeholder="添加备注..." class="input-field">
+      </div>
+
+      <button id="btnAdd" class="btn btn-primary w-full">
+        <i class="fa fa-check-circle mr-1"></i>添加记录
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="filter-bar">
+        <h2 class="card-title">交易记录</h2>
+        <button id="btnFilter" class="filter-btn">
+          <i class="fa fa-filter"></i>筛选
+        </button>
+      </div>
+
+      <div id="transactionList" class="transaction-list">
+        <div class="empty-state">
+          <i class="fa fa-inbox empty-state-icon"></i>
+          <p class="empty-state-text">暂无交易记录</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="editModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">编辑记录</h3>
+        <button id="closeEditModal" class="modal-close">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editId">
+        <div class="tabs">
+          <button id="editBtnIncome" class="tab-btn active">
+            <i class="fa fa-plus-circle mr-1"></i>收入
+          </button>
+          <button id="editBtnExpense" class="tab-btn">
+            <i class="fa fa-minus-circle mr-1"></i>支出
+          </button>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">金额</label>
+          <div class="input-with-prefix">
+            <span class="input-prefix">¥</span>
+            <input type="number" id="editAmount" placeholder="0.00" class="input-field">
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">分类</label>
+          <div class="category-grid" id="editCategoryList"></div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">备注</label>
+          <input type="text" id="editRemark" placeholder="添加备注..." class="input-field">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btnSaveEdit" class="btn btn-primary">
+          <i class="fa fa-save mr-1"></i>保存修改
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="budgetModal" class="modal-overlay hidden active">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">月度预算设置</h3>
+        <button id="closeBudgetModal" class="modal-close">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="period-selector">
+          <select id="budgetYear" class="select-field"></select>
+          <select id="budgetMonth" class="select-field"></select>
+        </div>
+
+        <div class="alert-over-budget hidden" id="budgetAlert">
+          <div class="alert-title">预算超支警告</div>
+          <div class="alert-message" id="budgetAlertMessage"></div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">支出分类预算</label>
+          <div class="budget-grid" id="budgetItems"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btnSaveBudget" class="btn btn-primary">
+          <i class="fa fa-save mr-1"></i>保存预算
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="filterModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">筛选记录</h3>
+        <button id="closeFilterModal" class="modal-close">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label class="input-label">选择年份</label>
+          <select id="filterYear" class="select-field"></select>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">选择月份</label>
+          <select id="filterMonth" class="select-field"></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btnClearFilter" class="btn btn-secondary">
+          <i class="fa fa-refresh mr-1"></i>清除筛选
+        </button>
+        <button id="btnApplyFilter" class="btn btn-primary">
+          <i class="fa fa-check mr-1"></i>应用筛选
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const categories = {
+      income: ['工资', '奖金', '投资', '兼职', '其他收入'],
+      expense: ['餐饮', '交通', '购物', '娱乐', '医疗', '教育', '房租', '其他支出']
+    };
+
+    let currentType = 'expense';
+    let selectedCategory = '';
+    let editType = 'expense';
+    let editCategory = '';
+    let filterYear = null;
+    let filterMonth = null;
+
+    function initCategories(containerId, selected = '') {
+      const categoryList = document.getElementById(containerId);
+      const cats = categories[currentType];
+      categoryList.innerHTML = cats.map(cat => 
+        `<button class="category-btn ${selected === cat ? 'active' : ''}" data-category="${cat}">${cat}</button>`
+      ).join('');
+
+      document.querySelectorAll(`#${containerId} .category-btn`).forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (containerId === 'categoryList') {
+            selectedCategory = btn.dataset.category;
+          } else {
+            editCategory = btn.dataset.category;
+          }
+          document.querySelectorAll(`#${containerId} .category-btn`).forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+    }
+
+    function initEditCategories(type, selected = '') {
+      editType = type;
+      const categoryList = document.getElementById('editCategoryList');
+      const cats = categories[type];
+      categoryList.innerHTML = cats.map(cat => 
+        `<button class="category-btn ${selected === cat ? 'active' : ''}" data-category="${cat}">${cat}</button>`
+      ).join('');
+
+      document.querySelectorAll('#editCategoryList .category-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          editCategory = btn.dataset.category;
+          document.querySelectorAll('#editCategoryList .category-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+    }
+
+    function loadTransactions() {
+      const data = localStorage.getItem('transactions');
+      return data ? JSON.parse(data) : [];
+    }
+
+    function saveTransactions(transactions) {
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+    }
+
+    function loadBudgets() {
+      const data = localStorage.getItem('budgets');
+      return data ? JSON.parse(data) : {};
+    }
+
+    function saveBudgets(budgets) {
+      localStorage.setItem('budgets', JSON.stringify(budgets));
+    }
+
+    function updateStats() {
+      const transactions = loadTransactions();
+      const filtered = filterTransactions(transactions);
+      const totalIncome = filtered.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+      const totalExpense = filtered.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+      const balance = totalIncome - totalExpense;
+
+      document.getElementById('totalIncome').textContent = `¥${totalIncome.toFixed(2)}`;
+      document.getElementById('totalExpense').textContent = `¥${totalExpense.toFixed(2)}`;
+      document.getElementById('balance').textContent = `¥${balance.toFixed(2)}`;
+    }
+
+    function filterTransactions(transactions) {
+      if (!filterYear && !filterMonth) return transactions;
+      
+      return transactions.filter(t => {
+        const date = new Date(t.date);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        
+        if (filterYear && year !== filterYear) return false;
+        if (filterMonth && month !== filterMonth) return false;
+        return true;
+      });
+    }
+
+    function renderTransactions() {
+      const transactions = loadTransactions();
+      const filtered = filterTransactions(transactions);
+      const list = document.getElementById('transactionList');
+
+      if (filtered.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <i class="fa fa-inbox empty-state-icon"></i>
+            <p class="empty-state-text">${filterYear || filterMonth ? '该时间段暂无记录' : '暂无交易记录'}</p>
+          </div>
+        `;
+        return;
+      }
+
+      filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      list.innerHTML = filtered.map(t => `
+        <div class="transaction-item">
+          <div class="transaction-left">
+            <div class="transaction-icon ${t.type}">
+              <i class="fa ${t.type === 'income' ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>
+            </div>
+            <div class="transaction-info">
+              <div class="transaction-category">${t.category}</div>
+              <div class="transaction-meta">${t.date}${t.remark ? ` - ${t.remark}` : ''}</div>
+            </div>
+          </div>
+          <div class="transaction-right">
+            <span class="transaction-amount ${t.type}">
+              ${t.type === 'income' ? '+' : '-'}¥${t.amount.toFixed(2)}
+            </span>
+            <div class="transaction-actions">
+              <button class="action-btn edit" data-id="${t.id}">
+                <i class="fa fa-pencil"></i>
+              </button>
+              <button class="action-btn delete" data-id="${t.id}">
+                <i class="fa fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      document.querySelectorAll('.action-btn.delete').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          const transactions = loadTransactions().filter(t => t.id !== id);
+          saveTransactions(transactions);
+          renderTransactions();
+          updateStats();
+        });
+      });
+
+      document.querySelectorAll('.action-btn.edit').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          const transactions = loadTransactions();
+          const record = transactions.find(t => t.id === id);
+          if (record) {
+            document.getElementById('editId').value = record.id;
+            document.getElementById('editAmount').value = record.amount;
+            document.getElementById('editRemark').value = record.remark;
+            editType = record.type;
+            editCategory = record.category;
+            
+            if (editType === 'income') {
+              document.getElementById('editBtnIncome').classList.add('active');
+              document.getElementById('editBtnExpense').classList.remove('active');
+            } else {
+              document.getElementById('editBtnExpense').classList.add('active');
+              document.getElementById('editBtnIncome').classList.remove('active');
+            }
+            
+            initEditCategories(editType, editCategory);
+            document.getElementById('editModal').classList.remove('hidden');
+          }
+        });
+      });
+    }
+
+    function checkBudget(category, amount) {
+      const now = new Date();
+      const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const budgets = loadBudgets();
+      
+      if (budgets[key] && budgets[key][category]) {
+        const budget = budgets[key][category];
+        const transactions = loadTransactions();
+        const currentMonthExpense = transactions.filter(t => {
+          const tDate = new Date(t.date);
+          return t.type === 'expense' && 
+                 t.category === category &&
+                 tDate.getFullYear() === now.getFullYear() &&
+                 tDate.getMonth() === now.getMonth();
+        }).reduce((sum, t) => sum + t.amount, 0);
+        
+        const newTotal = currentMonthExpense + amount;
+        if (newTotal > budget) {
+          const overAmount = newTotal - budget;
+          alert(`⚠️ ${category}分类本月预算已超支\n超支金额：¥${overAmount.toFixed(2)}\n预算：¥${budget.toFixed(2)}\n已消费：¥${newTotal.toFixed(2)}`);
+        }
+      }
+    }
+
+    function initYearMonthSelectors() {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
+      
+      let yearOptions = '<option value="">全部年份</option>';
+      for (let year = currentYear - 5; year <= currentYear + 1; year++) {
+        yearOptions += `<option value="${year}" ${year === currentYear ? 'selected' : ''}>${year}年</option>`;
+      }
+      
+      let monthOptions = '<option value="">全部月份</option>';
+      for (let month = 1; month <= 12; month++) {
+        monthOptions += `<option value="${month}" ${month === currentMonth ? 'selected' : ''}>${month}月</option>`;
+      }
+
+      document.getElementById('budgetYear').innerHTML = yearOptions.replace('<option value="">全部年份</option>', '');
+      document.getElementById('budgetMonth').innerHTML = monthOptions.replace('<option value="">全部月份</option>', '');
+      
+      document.getElementById('filterYear').innerHTML = yearOptions;
+      document.getElementById('filterMonth').innerHTML = monthOptions;
+    }
+
+    function renderBudgetItems() {
+      const budgetItems = document.getElementById('budgetItems');
+      const year = document.getElementById('budgetYear').value;
+      const month = String(document.getElementById('budgetMonth').value).padStart(2, '0');
+      const key = `${year}-${month}`;
+      const budgets = loadBudgets();
+      const currentBudgets = budgets[key] || {};
+      
+      const transactions = loadTransactions();
+      const monthlyExpense = {};
+      categories.expense.forEach(cat => {
+        monthlyExpense[cat] = transactions.filter(t => {
+          const tDate = new Date(t.date);
+          return t.type === 'expense' && 
+                 t.category === cat &&
+                 tDate.getFullYear() === parseInt(year) &&
+                 tDate.getMonth() === parseInt(month) - 1;
+        }).reduce((sum, t) => sum + t.amount, 0);
+      });
+
+      let hasOverBudget = false;
+      budgetItems.innerHTML = categories.expense.map(cat => {
+        const budget = currentBudgets[cat] || 0;
+        const spent = monthlyExpense[cat] || 0;
+        const isOverBudget = budget > 0 && spent > budget;
+        if (isOverBudget) hasOverBudget = true;
+        
+        return `
+          <div class="budget-item">
+            <div class="budget-info">
+              <div class="budget-category">${cat}</div>
+              <div class="budget-progress ${isOverBudget ? 'over' : budget > 0 ? 'under' : 'normal'}">
+                ${budget > 0 ? `已用 ¥${spent.toFixed(2)}/${budget.toFixed(2)}` : '未设置预算'}
+              </div>
+            </div>
+            <input type="number" class="budget-input" placeholder="预算" value="${budget || ''}" data-category="${cat}">
+          </div>
+        `;
+      }).join('');
+
+      const alert = document.getElementById('budgetAlert');
+      if (hasOverBudget) {
+        alert.classList.remove('hidden');
+        document.getElementById('budgetAlertMessage').textContent = '部分分类已超出预算，请合理控制支出';
+      } else {
+        alert.classList.add('hidden');
+      }
+    }
+
+    document.getElementById('btnIncome').addEventListener('click', () => {
+      currentType = 'income';
+      selectedCategory = '';
+      initCategories('categoryList');
+    });
+
+    document.getElementById('btnExpense').addEventListener('click', () => {
+      currentType = 'expense';
+      selectedCategory = '';
+      initCategories('categoryList');
+    });
+
+    document.getElementById('btnAdd').addEventListener('click', () => {
+      const amount = parseFloat(document.getElementById('amount').value);
+      const remark = document.getElementById('remark').value;
+
+      if (!amount || amount <= 0) {
+        alert('请输入有效的金额');
+        return;
+      }
+
+      if (!selectedCategory) {
+        alert('请选择分类');
+        return;
+      }
+
+      if (currentType === 'expense') {
+        checkBudget(selectedCategory, amount);
+      }
+
+      const transactions = loadTransactions();
+      transactions.push({
+        id: Date.now().toString(),
+        type: currentType,
+        amount: amount,
+        category: selectedCategory,
+        remark: remark,
+        date: new Date().toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      });
+
+      saveTransactions(transactions);
+      document.getElementById('amount').value = '';
+      document.getElementById('remark').value = '';
+      selectedCategory = '';
+      initCategories('categoryList');
+      renderTransactions();
+      updateStats();
+    });
+
+    document.getElementById('closeEditModal').addEventListener('click', () => {
+      document.getElementById('editModal').classList.add('hidden');
+    });
+
+    document.getElementById('editBtnIncome').addEventListener('click', () => {
+      editType = 'income';
+      editCategory = '';
+      initEditCategories('income');
+      document.getElementById('editBtnIncome').classList.add('active');
+      document.getElementById('editBtnExpense').classList.remove('active');
+    });
+
+    document.getElementById('editBtnExpense').addEventListener('click', () => {
+      editType = 'expense';
+      editCategory = '';
+      initEditCategories('expense');
+      document.getElementById('editBtnExpense').classList.add('active');
+      document.getElementById('editBtnIncome').classList.remove('active');
+    });
+
+    document.getElementById('btnSaveEdit').addEventListener('click', () => {
+      const id = document.getElementById('editId').value;
+      const amount = parseFloat(document.getElementById('editAmount').value);
+      const remark = document.getElementById('editRemark').value;
+
+      if (!amount || amount <= 0) {
+        alert('请输入有效的金额');
+        return;
+      }
+
+      if (!editCategory) {
+        alert('请选择分类');
+        return;
+      }
+
+      const transactions = loadTransactions();
+      const index = transactions.findIndex(t => t.id === id);
+      
+      if (index !== -1) {
+        const oldAmount = transactions[index].amount;
+        const oldCategory = transactions[index].category;
+        const oldType = transactions[index].type;
+        
+        if (editType === 'expense' && (editCategory !== oldCategory || editType !== oldType || amount !== oldAmount)) {
+          const diff = amount - oldAmount;
+          checkBudget(editCategory, diff);
+        }
+        
+        transactions[index] = {
+          ...transactions[index],
+          type: editType,
+          amount: amount,
+          category: editCategory,
+          remark: remark,
+          date: new Date().toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        };
+        
+        saveTransactions(transactions);
+        document.getElementById('editModal').classList.add('hidden');
+        renderTransactions();
+        updateStats();
+      }
+    });
+
+    document.getElementById('btnBudget').addEventListener('click', () => {
+      document.getElementById('budgetModal').classList.remove('hidden');
+      renderBudgetItems();
+    });
+
+    document.getElementById('closeBudgetModal').addEventListener('click', () => {
+      document.getElementById('budgetModal').classList.add('hidden');
+    });
+
+    document.getElementById('budgetYear').addEventListener('change', renderBudgetItems);
+    document.getElementById('budgetMonth').addEventListener('change', renderBudgetItems);
+
+    document.getElementById('btnSaveBudget').addEventListener('click', () => {
+      const year = document.getElementById('budgetYear').value;
+      const month = String(document.getElementById('budgetMonth').value).padStart(2, '0');
+      const key = `${year}-${month}`;
+      const budgets = loadBudgets();
+      
+      budgets[key] = {};
+      document.querySelectorAll('#budgetItems input').forEach(input => {
+        const category = input.dataset.category;
+        const value = parseFloat(input.value) || 0;
+        budgets[key][category] = value;
+      });
+      
+      saveBudgets(budgets);
+      alert('预算保存成功！');
+      document.getElementById('budgetModal').classList.add('hidden');
+    });
+
+    document.getElementById('btnFilter').addEventListener('click', () => {
+      document.getElementById('filterYear').value = filterYear || '';
+      document.getElementById('filterMonth').value = filterMonth || '';
+      document.getElementById('filterModal').classList.remove('hidden');
+    });
+
+    document.getElementById('closeFilterModal').addEventListener('click', () => {
+      document.getElementById('filterModal').classList.add('hidden');
+    });
+
+    document.getElementById('btnApplyFilter').addEventListener('click', () => {
+      const yearVal = document.getElementById('filterYear').value;
+      const monthVal = document.getElementById('filterMonth').value;
+      
+      filterYear = yearVal ? parseInt(yearVal) : null;
+      filterMonth = monthVal ? parseInt(monthVal) : null;
+      
+      document.getElementById('filterModal').classList.add('hidden');
+      renderTransactions();
+      updateStats();
+    });
+
+    document.getElementById('btnClearFilter').addEventListener('click', () => {
+      filterYear = null;
+      filterMonth = null;
+      document.getElementById('filterYear').value = '';
+      document.getElementById('filterMonth').value = '';
+      document.getElementById('filterModal').classList.add('hidden');
+      renderTransactions();
+      updateStats();
+    });
+
+    initYearMonthSelectors();
+    initCategories('categoryList');
+    renderTransactions();
+    updateStats();
+  </script>
+</body>
+</html>

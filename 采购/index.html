@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>采购记录管理</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>采购记录管理</h1>
+            <p class="subtitle">高效管理采购信息，轻松追踪采购成本</p>
+            <p class="total-price">采购总金额：<span id="totalAmount">0.00</span></p>
+        </header>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>新增采购记录</h2>
+                <span class="badge">必填项 *</span>
+            </div>
+            <form id="purchaseForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemName" class="required">物品名称</label>
+                        <input type="text" id="itemName" required placeholder="请输入物品名称">
+                    </div>
+                    <div class="form-group">
+                        <label for="specification">规格</label>
+                        <input type="text" id="specification" placeholder="请输入规格">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="quantity" class="required">数量</label>
+                        <input type="number" id="quantity" required min="1" value="1" placeholder="请输入数量">
+                    </div>
+                    <div class="form-group">
+                        <label for="unitPrice" class="required">单价</label>
+                        <input type="number" id="unitPrice" required min="0" step="0.01" value="0.00" placeholder="请输入单价">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="supplier">供应商</label>
+                        <input type="text" id="supplier" placeholder="请输入供应商">
+                    </div>
+                    <div class="form-group">
+                        <label for="purchaseDate" class="required">采购日期</label>
+                        <input type="date" id="purchaseDate" required>
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <label for="remark">备注</label>
+                    <textarea id="remark" rows="3" placeholder="请输入备注信息"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">保存记录</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>采购记录列表</h2>
+            </div>
+            <div class="filter-section">
+                <div class="filter-row">
+                    <div class="form-group">
+                        <label for="startDate">开始日期</label>
+                        <input type="date" id="startDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">结束日期</label>
+                        <input type="date" id="endDate">
+                    </div>
+                    <div class="filter-actions">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="applyFilter()">筛选</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="resetFilter()">重置</button>
+                    </div>
+                </div>
+            </div>
+            <div id="purchaseList" class="purchase-list">
+                <div class="empty-state">
+                    <p>暂无采购记录，点击上方添加</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>编辑采购记录</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <input type="hidden" id="editCreateTime">
+                <input type="hidden" id="editUpdateTime">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editItemName" class="required">物品名称</label>
+                        <input type="text" id="editItemName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editSpecification">规格</label>
+                        <input type="text" id="editSpecification">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editQuantity" class="required">数量</label>
+                        <input type="number" id="editQuantity" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="editUnitPrice" class="required">单价</label>
+                        <input type="number" id="editUnitPrice" required min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editSupplier">供应商</label>
+                        <input type="text" id="editSupplier">
+                    </div>
+                    <div class="form-group">
+                        <label for="editPurchaseDate" class="required">采购日期</label>
+                        <input type="date" id="editPurchaseDate" required>
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <label for="editRemark">备注</label>
+                    <textarea id="editRemark" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">保存修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
