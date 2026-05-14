@@ -1,0 +1,105 @@
+{
+  "pages": [
+    {
+      "path": "pages/list/index",
+      "style": {
+        "navigationBarTitleText": "合同列表",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/form/index",
+      "style": {
+        "navigationBarTitleText": "新增合同",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/detail/index",
+      "style": {
+        "navigationBarTitleText": "合同详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/archive/index",
+      "style": {
+        "navigationBarTitleText": "归档列表",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/reminder/index",
+      "style": {
+        "navigationBarTitleText": "到期提醒",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/approval/index",
+      "style": {
+        "navigationBarTitleText": "审批中心",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/approval/config/index",
+      "style": {
+        "navigationBarTitleText": "审批流程配置",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/template/index",
+      "style": {
+        "navigationBarTitleText": "合同模板",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/claim/index",
+      "style": {
+        "navigationBarTitleText": "金额认领",
+        "navigationStyle": "custom"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "合同管理",
+    "navigationBarBackgroundColor": "#2563eb",
+    "backgroundColor": "#f9fafb"
+  },
+  "tabBar": {
+    "color": "#6b7280",
+    "selectedColor": "#2563eb",
+    "borderStyle": "white",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/list/index",
+        "text": "合同",
+        "iconPath": "static/icons/contract.png",
+        "selectedIconPath": "static/icons/contract-active.png"
+      },
+      {
+        "pagePath": "pages/approval/index",
+        "text": "审批",
+        "iconPath": "static/icons/approval.png",
+        "selectedIconPath": "static/icons/approval-active.png"
+      },
+      {
+        "pagePath": "pages/claim/index",
+        "text": "认领",
+        "iconPath": "static/icons/claim.png",
+        "selectedIconPath": "static/icons/claim-active.png"
+      },
+      {
+        "pagePath": "pages/reminder/index",
+        "text": "提醒",
+        "iconPath": "static/icons/reminder.png",
+        "selectedIconPath": "static/icons/reminder-active.png"
+      }
+    ]
+  }
+}
